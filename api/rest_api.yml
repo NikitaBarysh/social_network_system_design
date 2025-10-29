@@ -1,0 +1,437 @@
+openapi: 3.0.4
+info:
+  title: Travel social network
+  version: 1.0.0
+
+paths:
+  /api/v1/posts:
+    post:
+      summary: Ручка для создания нового поста
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: JWT токен авторизации, в котором зашит его user_id
+          schema:
+            type: string
+          example: Bearer <jwt>
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                  example: "Каппадокия одно из самых красивых мест на земле"
+                location:
+                  type: string
+                  example: "Turkey, Cappadocia"
+                photos:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: "Загрузка до 10 фоток"
+              required:
+                - description
+                - photos
+      responses:
+        '201':
+          description: Успешное создание поста
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post_id:
+                    type: string
+                    example: "post_12345"
+        '400':
+          description: Неверные параметры запроса
+        '401':
+          description: Неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/v1/posts/{post_id}/likes:
+    post:
+      summary: Поставить лайк посту
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: JWT токен авторизации, в котором зашит его user_id
+          schema:
+            type: string
+          example: Bearer <jwt>
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+            example: "post_12345"
+      responses:
+        '200':
+          description: Лайк успешно поставлен
+        '401':
+          description: Неавторизован
+        '404':
+          description: Пост не найден
+        '500':
+          description: Ошибка на сервере
+
+    delete:
+      summary: Удалить лайк с поста
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+            example: Bearer <jwt_token>
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Лайк успешно удалён
+        '401':
+          description: Неавторизован
+        '404':
+          description: Пост не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/v1/posts/{post_id}/comments:
+    post:
+      summary: Добавить комментарий к посту
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: JWT токен авторизации, в котором зашит его user_id
+          schema:
+            type: string
+          example: Bearer <jwt>
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  example: "Очень красиво"
+              required:
+                - comment
+      responses:
+        '200':
+          description: Комментарий успешно добавлен
+        '400':
+          description: Неверный формат комментария
+        '401':
+          description: Неавторизован
+        '404':
+          description: Пост не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/v1/users/{user_id}/follow:
+    post:
+      summary: Подписаться на пользователя
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: JWT токен авторизации, в котором зашит его user_id
+          schema:
+            type: string
+          example: Bearer <jwt>
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешная подписка
+        '401':
+          description: Неавторизован
+        '404':
+          description: Пользователь не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+    delete:
+      summary: Отписаться от пользователя
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: JWT токен авторизации, в котором зашит его user_id
+          schema:
+            type: string
+          example: Bearer <jwt>
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешная отписка
+        '401':
+          description: Неавторизован
+        '404':
+          description: Пользователь не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/v1/users/{user_id}/followers:
+    get:
+      summary: Получить список подписчиков
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: JWT токен авторизации, в котором зашит его user_id
+          schema:
+            type: string
+          example: Bearer <jwt>
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            example: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            example: 20
+      responses:
+        '200':
+          description: Успешное получение списка подписчиков
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    follower_id:
+                      type: string
+                      example: "user_5678"
+        '404':
+          description: Пользователь не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/v1/users/{user_id}/posts:
+    get:
+      summary: Получить посты пользователя
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: JWT токен авторизации, в котором зашит его user_id
+          schema:
+            type: string
+          example: Bearer <jwt>
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            example: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Список постов пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '204':
+          description: У пользователя нет постов
+        '404':
+          description: Пользователь не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/v1/places/{location}/posts:
+    get:
+      summary: Получить посты по геолокации
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: JWT токен авторизации, в котором зашит его user_id
+          schema:
+            type: string
+          example: Bearer <jwt>
+        - in: path
+          name: location
+          required: true
+          schema:
+            type: string
+            example: "Turkey"
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            example: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Список постов по локации
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '404':
+          description: Локация не найдена
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/v1/feed:
+    get:
+      summary: Получить ленту постов от подписок
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: JWT токен авторизации, в котором зашит его user_id
+          schema:
+            type: string
+          example: Bearer <jwt>
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            example: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Успешное получение ленты постов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '204':
+          description: Нет постов в ленте
+        '401':
+          description: Неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/v1/media/upload-url:
+    post:
+      summary: url для загрузки медиафайла
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: JWT токен авторизации, в котором зашит его user_id
+          schema:
+            type: string
+          example: Bearer <jwt>
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                file_name:
+                  type: string
+                  example: "photo1.jpg"
+                content_type:
+                  type: string
+                  example: "image/jpeg"
+      responses:
+        '200':
+          description: Успешное получение url
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  upload_url:
+                    type: string
+                    example: "https://s3.amazonaws.com/travelapp/posts/photo1.jpg?X-Amz-Signature=abc123"
+                  public_url:
+                    type: string
+                    example: "https://cdn.travelapp.com/posts/photo1.jpg"
+        '400':
+          description: Неверные параметры запроса
+        '401':
+          description: Неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+
+components:
+  schemas:
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "post_5678"
+        user_id:
+          type: string
+          example: "user_1234"
+        description:
+          type: string
+          example: "Каппадокия — одно из самых красивых мест на земле"
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+          example:
+            - "https://cdn.travelapp.com/photos/photo1.jpg"
+            - "https://cdn.travelapp.com/photos/photo2.jpg"
+        location:
+          type: string
+          example: "Turkey, Cappadocia"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-10-26T13:45:00Z"
