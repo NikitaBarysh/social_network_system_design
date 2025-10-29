@@ -1,0 +1,59 @@
+Table users {
+  user_id string [pk]
+  followers integer
+  subscriptions integer
+}
+
+Table posts {
+  id string [pk]
+  user_id string
+  description string
+  place_id string
+  likes integer
+  media_urls jsonb
+  created_at timestamp
+}
+
+Table posts_activity {
+  id string [pk]
+  likes integer
+  comments jsonb
+}
+
+Table subscriptions {
+  follower_id string
+  following_id string
+  created_at timestamp
+}
+
+Table comments {
+  id string [pk]
+  post_id string
+  user_id string
+  text string
+  created_at timestamp
+}
+
+Table likes {
+  post_id string
+  user_id string
+  created_at timestamp
+}
+
+Table places {
+  id string [pk]
+  name string
+  country string
+  region string
+  coordinates point
+}
+
+ref users_posts: posts.user_id > users.user_id
+ref posts_activity: posts.id > posts_activity.id
+ref subscriptions_follower: subscriptions.follower_id > users.user_id
+ref subscriptions_following: subscriptions.following_id > users.user_id
+ref comments_post: comments.post_id > posts.id
+ref comments_user: comments.user_id > users.user_id
+ref likes_post: likes.post_id > posts.id
+ref likes_user: likes.user_id > users.user_id
+ref posts_place: posts.place_id > places.id
